@@ -9,7 +9,17 @@ from utils import get_session_manager
 from openai_client import OpenAIClient
 
 logger = logging.getLogger(__name__)
-openai_client = OpenAIClient()
+
+# Глобальная переменная для клиента (ленивая инициализация)
+_openai_client = None
+
+
+def get_openai_client():
+    """Получает или создаёт экземпляр OpenAIClient"""
+    global _openai_client
+    if _openai_client is None:
+        _openai_client = OpenAIClient()
+    return _openai_client
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -197,6 +207,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("🔄 Генерирую курс... Подождите немного...")
             
             # Генерируем курс
+            openai_client = get_openai_client()
             course_data = openai_client.generate_course_structure(
                 topic=session.temp_data['topic'],
                 audience_level=session.temp_data['level'],

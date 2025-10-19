@@ -27,7 +27,17 @@ from .callback_regeneration import (
 )
 
 logger = logging.getLogger(__name__)
-course_exporter = CourseExporter()
+
+# Глобальная переменная для экспортера (ленивая инициализация)
+_course_exporter = None
+
+
+def get_course_exporter():
+    """Получает или создаёт экземпляр CourseExporter"""
+    global _course_exporter
+    if _course_exporter is None:
+        _course_exporter = CourseExporter()
+    return _course_exporter
 
 
 async def handle_callback(query_update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -285,6 +295,8 @@ async def handle_callback(query_update: Update, context: ContextTypes.DEFAULT_TY
         
         await query.answer("🔄 Создаю файл...")
         
+        course_exporter = get_course_exporter()
+        
         if export_format == "json":
             content_str = course_exporter.export_module_content_to_json(module_content)
             filename = f"{module_content.module_title.replace(' ', '_')}_lectures.json"
@@ -362,6 +374,8 @@ async def handle_callback(query_update: Update, context: ContextTypes.DEFAULT_TY
         
         await query.answer("🔄 Создаю файл...")
         
+        course_exporter = get_course_exporter()
+        
         if export_format == "json":
             content_str = course_exporter.export_lesson_content_to_json(lesson.detailed_content)
             filename = f"{lesson.lesson_title.replace(' ', '_')}_detailed.json"
@@ -400,6 +414,8 @@ async def handle_callback(query_update: Update, context: ContextTypes.DEFAULT_TY
         course = session.current_course
         
         await query.answer("🔄 Генерирую файл...")
+        
+        course_exporter = get_course_exporter()
         
         if export_format == "json":
             content = course_exporter.export_to_json(course)

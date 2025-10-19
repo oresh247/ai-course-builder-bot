@@ -19,10 +19,34 @@ from prompts import (
 
 logger = logging.getLogger(__name__)
 
-# Инициализируем сервисы
-openai_client = OpenAIClient()
-content_generator = ContentGenerator()
-course_exporter = CourseExporter()
+# Глобальные переменные для сервисов (ленивая инициализация)
+_openai_client = None
+_content_generator = None
+_course_exporter = None
+
+
+def get_openai_client():
+    """Получает или создаёт экземпляр OpenAIClient"""
+    global _openai_client
+    if _openai_client is None:
+        _openai_client = OpenAIClient()
+    return _openai_client
+
+
+def get_content_generator():
+    """Получает или создаёт экземпляр ContentGenerator"""
+    global _content_generator
+    if _content_generator is None:
+        _content_generator = ContentGenerator()
+    return _content_generator
+
+
+def get_course_exporter():
+    """Получает или создаёт экземпляр CourseExporter"""
+    global _course_exporter
+    if _course_exporter is None:
+        _course_exporter = CourseExporter()
+    return _course_exporter
 
 
 async def handle_module_edit(query, user_id: int, module_index: int, session: UserSession):
@@ -60,6 +84,7 @@ async def generate_module_content(query, user_id: int, module_index: int, sessio
         parse_mode="HTML"
     )
     
+    content_generator = get_content_generator()
     module_content = content_generator.generate_module_content(
         module=module,
         course_title=course.course_title,
@@ -270,6 +295,7 @@ async def generate_lesson_topics(query, user_id: int, module_index: int, lesson_
         parse_mode="HTML"
     )
     
+    content_generator = get_content_generator()
     lesson_content = content_generator.generate_lesson_detailed_content(
         lesson=lesson,
         module_number=module.module_number,

@@ -16,8 +16,25 @@ from prompts import (
 
 logger = logging.getLogger(__name__)
 
-openai_client = OpenAIClient()
-content_generator = ContentGenerator()
+# Глобальные переменные для сервисов (ленивая инициализация)
+_openai_client = None
+_content_generator = None
+
+
+def get_openai_client():
+    """Получает или создаёт экземпляр OpenAIClient"""
+    global _openai_client
+    if _openai_client is None:
+        _openai_client = OpenAIClient()
+    return _openai_client
+
+
+def get_content_generator():
+    """Получает или создаёт экземпляр ContentGenerator"""
+    global _content_generator
+    if _content_generator is None:
+        _content_generator = ContentGenerator()
+    return _content_generator
 
 
 async def regenerate_lesson_item(query, user_id: int, module_index: int, lesson_index: int, 
@@ -48,6 +65,9 @@ async def regenerate_lesson_item(query, user_id: int, module_index: int, lesson_
     )
 
     try:
+        openai_client = get_openai_client()
+        content_generator = get_content_generator()
+        
         response = openai_client.client.chat.completions.create(
             model="gpt-4",
             messages=[
@@ -170,6 +190,9 @@ async def regenerate_lecture(query, user_id: int, lecture_index: int, session: U
 }}"""
 
     try:
+        openai_client = get_openai_client()
+        content_generator = get_content_generator()
+        
         response = openai_client.client.chat.completions.create(
             model="gpt-4",
             messages=[
@@ -263,6 +286,9 @@ async def regenerate_slide(query, user_id: int, lecture_index: int, slide_index:
 ВАЖНО: Верни ТОЛЬКО JSON, без комментариев!"""
 
     try:
+        openai_client = get_openai_client()
+        content_generator = get_content_generator()
+        
         response = openai_client.client.chat.completions.create(
             model="gpt-4",
             messages=[
@@ -323,6 +349,8 @@ async def generate_module_goal(query, user_id: int, module_index: int, session: 
 Верни ТОЛЬКО текст цели, без дополнительных пояснений."""
 
     try:
+        openai_client = get_openai_client()
+        
         response = openai_client.client.chat.completions.create(
             model="gpt-4",
             messages=[
