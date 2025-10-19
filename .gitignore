@@ -72,3 +72,11 @@ Thumbs.db
 *.bak
 *.swp
 
+# Docker
+logs/
+*.log
+
+# Deployment
+.deployment
+.vscode/
+

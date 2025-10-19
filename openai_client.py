@@ -2,8 +2,8 @@ import openai
 import json
 import logging
 import httpx
+import os
 from typing import Optional, Dict, Any
-from config import OPENAI_API_KEY, COURSE_PROMPTS
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -11,8 +11,10 @@ logger = logging.getLogger(__name__)
 
 class OpenAIClient:
     def __init__(self):
-        # Создаём httpx клиент с отключенной SSL проверкой и прокси
-        import os
+        # Получаем API ключ из переменных окружения
+        api_key = os.getenv('OPENAI_API_KEY')
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY не найден в переменных окружения")
         
         # Настраиваем прокси из .env или используем прямое подключение
         proxy_url = os.getenv('HTTPS_PROXY') or os.getenv('HTTP_PROXY')
@@ -30,7 +32,7 @@ class OpenAIClient:
             http_client = httpx.Client(verify=False, timeout=60.0)
         
         self.client = openai.OpenAI(
-            api_key=OPENAI_API_KEY,
+            api_key=api_key,
             http_client=http_client
         )
     
@@ -80,13 +82,15 @@ class OpenAIClient:
             
             logger.info(f"Отправляем запрос в OpenAI: {prompt[:100]}...")
             
+            system_prompt = "Ты — эксперт по созданию образовательных IT-курсов. Создаёшь структурированные программы обучения с модулями, уроками и практическими заданиями. Отвечаешь строго в JSON формате."
+            
             response = self.client.chat.completions.create(
                 model="gpt-4",
                 messages=[
-                    {"role": "system", "content": COURSE_PROMPTS["instructions"]["system"]},
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=COURSE_PROMPTS.get("max_tokens", 3000),
+                max_tokens=3000,
                 temperature=0.7
             )
             
